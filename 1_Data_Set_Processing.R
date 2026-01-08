@@ -26,7 +26,12 @@ df_processed <- df_raw %>%
     inflation      = 100 * (log_cpi - lag(log_cpi)),
     sp500_ret      = 100 * (log_sp500 - lag(log_sp500)),
     oil_prod_gr    = 100 * (log_oil_prod - lag(log_oil_prod)),
-    real_oil_gr    = 100 * (log_real_oil - lag(log_real_oil))
+    real_oil_gr    = 100 * (log_real_oil - lag(log_real_oil)),
+
+    # Fed Funds change
+    fedfunds_chg   = fed_funds - lag(fed_funds)
+
+
   ) %>%
   select(
     date,
@@ -35,13 +40,15 @@ df_processed <- df_raw %>%
     ind_prod_gr,
     inflation,
     sp500_ret,
-    fed_funds
+    fed_funds,
+    fedfunds_chg
+    
   ) %>%
   na.omit()
 
 # 3. Save processed dataset
 write_csv(
   df_processed,
-  "Processed_Data/Kilian_VAR_Processed_1986_2024.csv"
+  "Processed_Data/Processed_1986_2024.csv"
 )
 

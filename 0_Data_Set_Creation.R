@@ -4,7 +4,7 @@
 ##########################################################################################################
 
 # Load or install required packages
-required_packages <- c("fredr", "dplyr", "purrr", "zoo","xts", "lubridate", "quantmod" )
+required_packages <- c("readr", "fredr", "dplyr", "purrr", "zoo","xts", "lubridate", "quantmod" )
 
 installed <- required_packages %in% installed.packages()
 if (any(!installed)) {
@@ -12,6 +12,7 @@ if (any(!installed)) {
 }
 invisible(lapply(required_packages, library, character.only = TRUE))
 
+dir.create("Raw_Data", showWarnings = FALSE)
 
 ##########################################################################################################
 #                                         OIL (EIA)
@@ -27,7 +28,7 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 #2) Text to column (Delimited by "")
 #3) Transposed vertically.
 #4) Data from 1986-01-01 to 2024-01-01 was copied to a separate excel file and saved as CSV.
-#Note Traditionally I would have used R to do this but did not have the time.
+#Note Traditionally I would have used R to do this but wanted to focus on the actual paper instead of this.
 
 ##########################################################################################################
 #                                         S&P 500 (Yahoo)
@@ -35,7 +36,7 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 
 
 # 1. Download daily S&P 500 prices
-getSymbols("^GSPC", src = "yahoo", from = "1986-01-01", to = "2024-12-01")
+getSymbols("^GSPC", src = "yahoo", from = "1986-01-01", to = "2024-12-03") 
 
 # 2. Convert to data frame
 SP500_daily <- data.frame(
@@ -44,16 +45,16 @@ SP500_daily <- data.frame(
 )
 
 # 3. Get first trading day of each month
+# Note someday it is the 2nd or 3rd due to weekends but we merge monthly
 SP500_monthly_start <- SP500_daily %>%
   mutate(year = year(date), month = month(date)) %>%
   group_by(year, month) %>%
-  slice_min(date) %>%   # first trading day of the month (note someday it is the 2nd or 3rd due to weekends)
+  slice_min(date) %>%   
   ungroup() %>%
   select(date, SP500)
 
 # 4. Save CSV
-dir.create("Raw_Data", showWarnings = FALSE)
-write.csv(SP500_monthly_start, "Raw_Data/SP500_StartMonth_1986_2024.csv", row.names = FALSE)
+write.csv(SP500_monthly_start, "Raw_Data/SP500_1986_2024.csv", row.names = FALSE)
 
 
 ##########################################################################################################
@@ -90,7 +91,42 @@ raw_df <- raw_data_list %>%
          fed_funds = value.y.y,)
 
 # Save Raw CSV
-dir.create("Raw_Data", showWarnings = FALSE)
-write.csv(raw_df, "Raw_Data/Kilian_Park_Raw_1986_2024.csv")
+
+write.csv(raw_df, "Raw_Data/Macro_Data_1986_2024.csv")
 
 
+##########################################################################################################
+#                                         Combining Data Sets
+##########################################################################################################
+
+# Read Macro Data
+macro <- read_csv("Raw_Data/Macro_Data_1986_2024.csv") %>%
+  select(-...1) %>%                      # drop row index column
+  mutate(date = floor_date(date, "month"))
+
+# Read Oil Production data
+# The bloated code is due to issues with the CSV file.
+oil <- read_delim(
+  "Raw_Data/Oil_Production_1986_2024.csv",
+  delim = ";", #apparently the csv file
+  col_names = c("date", "oil_prod_global"),
+  col_types = cols(
+    date = col_date(format = "%Y-%m-%d"),
+    oil_prod_global = col_double()
+  )
+) %>%
+  mutate(date = floor_date(date, "month"))
+
+
+# Read S&P 500 data
+sp500 <- read_csv("Raw_Data/SP500_1986_2024.csv") %>%
+  mutate(date = floor_date(date, "month"))
+
+# Merge everything by month
+combined_df <- macro %>%
+  left_join(oil,   by = "date") %>%
+  left_join(sp500, by = "date") %>%
+  arrange(date)
+
+# Save final CSV
+write_csv(combined_df, "Raw_Data/Combined_Data_1986_2024.csv")
