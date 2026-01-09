@@ -66,11 +66,11 @@ fredr_set_key(Sys.getenv("FRED_API_KEY"))
 
 # Define Series for Kilian & Park (2009) Replication
 # 1. WCOILWTICO: Crude Oil Price (Monthly)
-# 2. INDPRO: Industrial Production (Real Activity Proxy)
+# 2. IGREA: Index of Global Real Economic Activity (Killian Index)
 # 3. CPIAUCSL: Consumer Price Index (For deflating)
 # 4. FEDFUNDS: Effective Federal Funds Rate (For the monetary policy debate)
 
-kilian_series <- c("WCOILWTICO", "INDPRO", "CPIAUCSL", "FEDFUNDS")
+kilian_series <- c("WCOILWTICO", "IGREA", "CPIAUCSL", "FEDFUNDS")
 
 
 # Download Raw Data
@@ -86,7 +86,7 @@ raw_df <- raw_data_list %>%
   reduce(full_join, by = "date") %>%
   select(date, 
          oil_price = value.x, 
-         ind_prod = value.y, 
+         global_real_economic_activity = value.y, 
          cpi = value.x.x, 
          fed_funds = value.y.y,)
 

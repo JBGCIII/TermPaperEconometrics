@@ -14,35 +14,22 @@ df_raw <- read_csv("Raw_Data/Combined_Data_1986_2024.csv")
 df_processed <- df_raw %>%
   arrange(date) %>%
   mutate(
-    # Logs
-    log_ind_prod   = log(ind_prod),
-    log_cpi        = log(cpi),
-    log_sp500      = log(SP500),
-    log_oil_prod   = log(oil_prod_global),
-    log_real_oil   = log(oil_price / cpi),
+    oil_production_growth   = 100 * (log(oil_prod_global) - lag(log(oil_prod_global))),
+    real_activity  = global_real_economic_activity, # Already implied to be stationary, no need to detrend
+    real_oil_price   = log(oil_price / cpi), #Logged and Deflated as in Killian (2009)
+    real_sp500_return = 100 * ( (log(SP500) - lag(log(SP500))) - (log(cpi) - lag(log(cpi))) ),
+    fedfunds   = fed_funds # Not stationary 
 
     # Growth rates / returns (percent)
-    ind_prod_gr    = 100 * (log_ind_prod - lag(log_ind_prod)),
-    inflation      = 100 * (log_cpi - lag(log_cpi)),
-    sp500_ret      = 100 * (log_sp500 - lag(log_sp500)),
-    oil_prod_gr    = 100 * (log_oil_prod - lag(log_oil_prod)),
-    real_oil_gr    = 100 * (log_real_oil - lag(log_real_oil)),
-
-    # Fed Funds change
-    fedfunds_chg   = fed_funds - lag(fed_funds)
-
-
   ) %>%
   select(
     date,
-    real_oil_gr,
-    oil_prod_gr,
-    ind_prod_gr,
-    inflation,
-    sp500_ret,
-    fed_funds,
-    fedfunds_chg
-    
+    oil_production_growth,
+    real_activity,
+    real_oil_price,
+    real_sp500_return,
+    fedfunds
+
   ) %>%
   na.omit()
 
