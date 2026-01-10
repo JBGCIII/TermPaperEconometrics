@@ -22,7 +22,7 @@ df_processed <- df_raw %>%
 
     # Growth rates / returns (percent)
   ) %>%
-  select(
+  dplyr::select(
     date,
     oil_production_growth,
     real_activity,
