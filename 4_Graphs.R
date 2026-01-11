@@ -28,50 +28,46 @@ data_xts <- xts(
 )
 
 # 3. Save multiple plots in one PNG file
-png("Processed_Data/graph_macro_oil_sp500.png", width = 1200, height = 800)
-par(mfrow = c(3, 2))  # 3 rows, 2 columns
+png("Processed_Data/graph_macro_oil_sp500.png", width = 1200, height = 1000)
+par(mfrow = c(2, 2))  # Updated to 3 rows, 2 columns to fit all variables
 
-# Real Oil Growth
+# 1. Real Oil Price (Logged/Deflated)
 plot(data_xts$real_oil_price, 
-     main = "Real Oil Price Growth (%)",
-     ylab = "Growth Rate (%)",
+     main = "Real Oil Price (Log levels)",
+     ylab = "Log Price",
      col = "darkgreen",
      lwd = 1)
 
-# Oil Production Growth
+# 2. Oil Production Growth
 plot(data_xts$oil_production_growth, 
      main = "Global Oil Production Growth (%)",
-     ylab = "Growth Rate (%)",
+     ylab = "Percent Change",
      col = "brown",
      lwd = 1)
 
-# Industrial Production Growth
+# 3. Global Real Economic Activity
 plot(data_xts$real_activity, 
-     main = "Industrial Production Growth (%)",
-     ylab = "Growth Rate (%)",
+     main = "Global Real Economic Activity",
+     ylab = "Index",
      col = "blue",
      lwd = 1)
 
-# Inflation
-plot(data_xts$inflation, 
-     main = "Inflation (%)",
-     ylab = "Growth Rate (%)",
-     col = "red",
-     lwd = 1)
-
-# S&P 500 Returns
-plot(data_xts$sp500_ret, 
-     main = "S&P 500 Monthly Returns (%)",
-     ylab = "Return (%)",
+# 4. Real S&P 500 Returns
+# Note: Changed from 'sp500_ret' to 'real_sp500_return' per your list
+plot(data_xts$real_sp500_return, 
+     main = "Real S&P 500 Monthly Returns (%)",
+     ylab = "Real Return (%)",
      col = "purple",
      lwd = 1)
 
-# Fed Funds Change
-plot(data_xts$fedfunds_chg, 
-     main = "Federal Funds Rate Change (%)",
-     ylab = "Δ Fed Funds (%)",
-     col = "orange",
-     lwd = 1)
+
+
+# 5. Fed Funds Rate
+#plot(data_xts$fedfunds, 
+#     main = "Federal Funds Rate",
+#     ylab = "Percent",
+#     col = "darkred",
+#     lwd = 1)
 
 # Close PNG
 dev.off()

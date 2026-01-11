@@ -7,6 +7,9 @@
 library(dplyr)
 library(readr)
 
+dir.create("Processed_Data", showWarnings = FALSE)
+
+
 # 1. Load combined raw dataset
 df_raw <- read_csv("Raw_Data/Combined_Data_1986_2024.csv")
 
@@ -38,4 +41,6 @@ write_csv(
   df_processed,
   "Processed_Data/Processed_1986_2024.csv"
 )
+
+
 
