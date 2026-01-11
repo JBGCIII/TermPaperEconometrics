@@ -66,37 +66,164 @@ Bvar_Kilian_Stock$gibbs(10000)
 
 plot(Bvar_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
 
-###################################################Impulse Response Function####################################### 
-#Impulse Response Function
-shock_names <- c("Oil_Supply", "Aggregate_Demand", "Oil_Specific_Demand")
+##########################################################################################################
+###                                 2. Impulse Response Function                                       ### 
 
-# Save IRFs directly in Processed_Data
-old_wd <- getwd()
-setwd("Processed_Data")  # Temporary working directory
+###################################################Global Financial Crisis############################# 
 
-for (i in 1:3) {
-  BMR::IRF.Rcpp_bvars(
-    Bvar_Kilian_Stock,
-    periods = 15, # As in Kilian & Park (2009)
-    cumulative = FALSE,
-    var_names = colnames(Kilian_Stock),
-    percentiles = c(0.05, 0.5, 0.95),
-    which_shock = i,
-    which_response = 4,
-    shocks_row_order = TRUE,
-    save = TRUE,
-    save_format = "pdf",
-    save_title = paste0("IRF_", shock_names[i], "_to_SP500")  # Just filename
+dir.create("Processed_Data/IRF2", showWarnings = FALSE)
+
+target_index_GFC <- which(macro_data$date == "2008-09-01")
+which_irfs_GFC <- target_index_GFC - tau - 2
+print(which_irfs_GFC) #190
+
+png(
+    filename = "Processed_Data/FEVD/BVAR_FEVD_GFC4.png",
+    width = 1800,
+    height = 2500,
+    res = 200
   )
-  
-  # Delete default empty IRF.pdf if created
-  if (file.exists("IRFs.pdf")) file.remove("IRFs.pdf")
+
+irf_obj_gfc <- IRF.Rcpp_bvars(
+  Bvar_Kilian_Stock, 
+  periods= 15, 
+  which_irfs = which_irfs_GFC,
+  percentiles = c(0.05, 0.5, 0.95),
+  var_names = colnames(Kilian_Stock),
+  shocks_row_order = TRUE, 
+  save=FALSE)
+
+dev.off()
+
+extract_irf <- function(irf, response, shock, negative = FALSE) {
+  lo <- irf$plot_vals[,1,response,shock]
+  md <- irf$plot_vals[,2,response,shock]
+  hi <- irf$plot_vals[,3,response,shock]
+
+  if (negative) {
+    return(list(
+      lower  = -hi,
+      median = -md,
+      upper  = -lo
+    ))
+  }
+
+  list(lower = lo, median = md, upper = hi)
 }
 
-setwd(old_wd)  # Restore original working directory
+irf_oil  <- extract_irf(irf_obj_gfc, response = 1, shock = 2, negative = TRUE)
+irf_oilp <- extract_irf(irf_obj_gfc, response = 3, shock = 2, negative = TRUE)
+irf_sp   <- extract_irf(irf_obj_gfc, response = 4, shock = 2, negative = TRUE)
+h <- seq_len(length(irf_oil$median))
+
+
+png(
+    filename = "Processed_Data/IRF2/IRF_GFC_BVAR.png",
+    width = 1800,
+    height = 1800,
+    res = 200
+  )
+
+par(mfrow = c(3,1), mar = c(4,4,2,1))
+
+plot(h, irf_oil$median, type="l", lwd=2,
+     ylim=range(irf_oil$lower, irf_oil$upper),
+     main="Oil Production",
+     xlab="Horizon", ylab="Response Percent Change Oil Production")
+lines(h, irf_oil$lower, lty=2)
+lines(h, irf_oil$upper, lty=2)
+abline(h=0, col="gray")
+
+plot(h, irf_oilp$median, type="l", lwd=2,
+     ylim=range(irf_oilp$lower, irf_oilp$upper),
+     main="Real Oil Price",
+     xlab="Horizon", ylab="Response Log Oil Price")
+lines(h, irf_oilp$lower, lty=2)
+lines(h, irf_oilp$upper, lty=2)
+abline(h=0, col="gray")
+
+plot(h, irf_sp$median, type="l", lwd=2,
+     ylim=range(irf_sp$lower, irf_sp$upper),
+     main="Real S&P 500 Return",
+     xlab="Horizon", ylab="Response in Real Return (%)")
+lines(h, irf_sp$lower, lty=2)
+lines(h, irf_sp$upper, lty=2)
+abline(h=0, col="gray")
+
+dev.off()
+
+####################################################FEVD
+
+dir.create("Processed_Data/FEVD", showWarnings = FALSE)
+
+
+
+
+#Note Variance is squared, hence we do not need to decompse things as before.
+
+
+png(
+    filename = "Processed_Data/FEVD/BVAR_FEVD_GFC2.png",
+    width = 1800,
+    height = 2500,
+    res = 200
+  )
+
+  BMR::FEVD.Rcpp_bvars(
+    Bvar_Kilian_Stock,
+    periods = 15, 
+    cumulative = FALSE,
+    var_names = colnames(Kilian_Stock),
+    which_irfs = which_irfs_GFC,
+    percentiles = c(0.05, 0.5, 0.95),
+    shocks_row_order = TRUE,
+    save = FALSE
+  )
+
+dev.off()
+
+
+
+
+
+
 
 
 ###################################################FEVD############################################################ 
+
+
+
+
+
+#############################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 setwd("Processed_Data")  # Temporary working directory
 
@@ -107,12 +234,10 @@ for (i in 1:3) {
     cumulative = FALSE,
     var_names = colnames(Kilian_Stock),
     percentiles = c(0.05, 0.5, 0.95),
-    which_shock = i,
-    which_response = 4,
     shocks_row_order = TRUE,
-    save = TRUE,
-    save_format = "pdf",
-    save_title = paste0("FEVD_", shock_names[i], "_to_SP500")  # Just filename
+    save = FALSE
+    #save_format = "pdf",
+    #save_title = paste0("FEVD_", shock_names[i], "_to_SP500")  # Just filename
   )
   
   # Delete default empty IRF.pdf if created

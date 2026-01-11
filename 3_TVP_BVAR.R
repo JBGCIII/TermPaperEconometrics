@@ -1,5 +1,5 @@
 ##########################################################################################################
-###                               TVP_BSVAR                                                                ### 
+###                               TVP_BVAR                                                                ### 
 ##########################################################################################################
 
 # Load or install required packages
@@ -73,17 +73,20 @@ saveRDS(Tvp_Kilian_Stock, file = "Processed_Data/Tvp_Kilian_Model.rds")
 dim(Tvp_Kilian_Stock$alpha_draws)
 
 
-#TVP_BSVAR results 
-plot(Tvp_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
+##########################################################################################################
+###                                 3. TVP_BVAR                                                        ### 
 
+#[TVP_BVAR results # Graph 3]
+#BMR only plots in PDF and EPS which is a nightmare to copy inside the document hence i tried to use other
+#methods by they failed. The following code works when it comes to saving IRF for all variables.
+#png(filename = "Processed_Data/Graph_3_TVP_BVAR_Results.png")
+plot(Tvp_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
+#dev.off()
 
 
 ##########################################################################################################
 ###                                 2. Impulse Response Function                                       ### 
-
-
-
-###################################################Historical Periods######################################### 
+########################################################################################################## 
 
 #Because a TVP-BVAR model allows coefficients to change at every single point in time, 
 #the relationship between variables (the Impulse Response) is also different at every point in time. 
@@ -191,6 +194,12 @@ target_index_GFC <- which(macro_data$date == "2008-09-01")
 which_irfs_GFC <- target_index_GFC - tau - 2
 print(which_irfs_GFC) #190
 
+png(
+    filename = "Processed_Data/IRF/Graph_04_IRF_GFC_all.png",
+    width = 1800,
+    height = 2500,
+    res = 200
+  )
 irf_obj_gfc <- IRF.Rcpp_bvartvp(
   Tvp_Kilian_Stock, 
   periods= 15, 
@@ -199,6 +208,8 @@ irf_obj_gfc <- IRF.Rcpp_bvartvp(
   var_names = colnames(Kilian_Stock),
   shocks_row_order = TRUE, 
   save=FALSE)
+
+dev.off()
 
 extract_irf <- function(irf, response, shock, negative = FALSE) {
   lo <- irf$plot_vals[,1,response,shock]
@@ -223,7 +234,7 @@ h <- seq_len(length(irf_oil$median))
 
 
 png(
-    filename = "Processed_Data/IRF/IRF_GFC.png",
+    filename = "Processed_Data/IRF/Graph_05_IRF_GFC_KilianShock.png",
     width = 1800,
     height = 1800,
     res = 200
@@ -266,6 +277,12 @@ target_index_Covid <- which(macro_data$date == "2020-03-01")
 which_irfs_Covid <- target_index_Covid - tau - 2
 print(which_irfs_Covid) #328
 
+png(
+    filename = "Processed_Data/IRF/Graph_06_IRF_Covid_all.png",
+    width = 1800,
+    height = 2500,
+    res = 200
+  )
 irf_obj_Covid <- IRF.Rcpp_bvartvp(
   Tvp_Kilian_Stock, 
   periods= 15, 
@@ -274,6 +291,8 @@ irf_obj_Covid <- IRF.Rcpp_bvartvp(
   var_names = colnames(Kilian_Stock),
   shocks_row_order = TRUE, 
   save=FALSE)
+  dev.off()
+
 
 irf_activity <- extract_irf(irf_obj_Covid, response = 2, shock = 1, negative = TRUE)
 irf_oilp     <- extract_irf(irf_obj_Covid, response = 3, shock = 1, negative = TRUE)
@@ -281,7 +300,7 @@ irf_sp       <- extract_irf(irf_obj_Covid, response = 4, shock = 1, negative = T
 h <- seq_len(length(irf_activity$median))
 
 png(
-  filename = "Processed_Data/IRF/IRF_Covid_OilShock.png",
+  filename = "Processed_Data/IRF/Graph_07_IRF_Covid_OilShock.png",
   width = 1800,
   height = 1800,
   res = 200
@@ -322,6 +341,12 @@ target_index_Ukraine <- which(macro_data$date == "2022-03-01")
 which_irfs_ukraine <- target_index_Ukraine - tau - 2
 print(which_irfs_ukraine) #352
 
+png(
+    filename = "Processed_Data/IRF/Graph_08_IRF_Ukraine_all.png",
+    width = 1800,
+    height = 2500,
+    res = 200
+  )
 irf_obj_Ukraine <- IRF.Rcpp_bvartvp(
   Tvp_Kilian_Stock, 
   periods= 15, 
@@ -330,6 +355,8 @@ irf_obj_Ukraine <- IRF.Rcpp_bvartvp(
   var_names = colnames(Kilian_Stock),
   shocks_row_order = TRUE, 
   save=FALSE)
+dev.off()
+
 
 # Extract IRFs (shock = real oil price = 3)
 irf_prod <- extract_irf(irf_obj_Ukraine, response = 1, shock = 3, negative = FALSE) # Oil production
@@ -339,7 +366,7 @@ irf_sp <- extract_irf(irf_obj_Ukraine, response = 4, shock = 3, negative = FALSE
 h <- seq_len(length(irf_activity$median))
 
 png(
-  filename = "Processed_Data/IRF/IRF_Ukraine_Oil_Price_Shock.png",
+  filename = "Processed_Data/IRF/Graph_09_Ukraine_Oil_Price_Shock.png",
   width = 1800,
   height = 1800,
   res = 200
@@ -375,41 +402,6 @@ lines(h, irf_sp$upper, lty=2)
 abline(h=0, col="gray")
 
 dev.off()
-
-###################################################Full Sample########################################### 
-
-#Impulse Response Function (Full Sample)
-shock_names <- c("OilSupply", "AggregateDemand", "OilSpecificDemand")
-for (i in 1:3) {
-
-  png(
-    filename = paste0(
-      "Processed_Data/1986_to_2024_IRF_TVP_",
-      shock_names[i],
-      "_to_SP500.png"
-    ),
-    width = 1800,
-    height = 1800,
-    res = 200
-  )
-
-  IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    var_names = colnames(Kilian_Stock),
-    which_shock = i,
-    which_response = 4,
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-  )
-
-  dev.off()
-}
-
-if (file.exists("IRFs.eps")) file.remove("IRFs.eps")
-
-
-
 
 # Having a FEVD would be helpfull in giving the relative importance of a shock.
 # This is once more due to the limitation of the BMR package. Below I list all functions.

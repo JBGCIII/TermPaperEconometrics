@@ -159,28 +159,28 @@ summary(ur.kpss(data_xts["2005-06/2024-12"]$real_oil_price,type = "tau"))
 
 dir.create("Processed_Data/ACF", showWarnings = FALSE)
 
-png("Processed_Data/ACF/Oil Production Growth.png", width = 800, height = 600)
+png("Processed_Data/ACF/Graph_2_Oil_Production_Growth.png", width = 800, height = 600)
 acf(data_xts$oil_production_growth, main = "ACF Plot for Oil Production Growth")
 legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
        fill = c("blue", "grey"), border = NA, bty = "n")
 dev.off()
 
 
-png("Processed_Data/ACF/Real Activity.png", width = 800, height = 600)
+png("Processed_Data/ACF/Graph_2_Real_Activity.png", width = 800, height = 600)
 acf(data_xts$real_activity, main = "ACF Plot for Real Activity")
 legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
        fill = c("blue", "grey"), border = NA, bty = "n")
 dev.off()
 
 
-png("Processed_Data/ACF/Real Oil Price.png", width = 800, height = 600)
+png("Processed_Data/ACF/Graph_2_Real_Oil_Price.png", width = 800, height = 600)
 acf(data_xts$real_oil_price, main = "ACF Plot for Real Oil Price")
 legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
        fill = c("blue", "grey"), border = NA, bty = "n")
 dev.off()
 
 
-png("Processed_Data/ACF/Real Sp500 Return.png", width = 800, height = 600)
+png("Processed_Data/ACF/Graph_2_Real_Sp500_Return.png", width = 800, height = 600)
 acf(data_xts$real_sp500_return, main = "ACF Plot for Real SP500 Return")
 legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
        fill = c("blue", "grey"), border = NA, bty = "n")
