@@ -60,9 +60,9 @@ summary(ur.kpss(data_xts$real_sp500_return))
 #Value of ADF test-statistic is: (-16.585 ) < Critical Value --> Stationary
 #Value of KPSS test-statistic is: (0.0831) < Critical Value -->  Stationary 
 
-#Stationary Test for Fed Funds
-summary(ur.df(data_xts$fedfunds, type = "none", selectlags = "AIC"))
-summary(ur.kpss(data_xts$fedfunds))
+#Stationary Test for Fed Funds [Not Used]
+#summary(ur.df(data_xts$fedfunds, type = "none", selectlags = "AIC"))
+#summary(ur.kpss(data_xts$fedfunds))
 #Value of ADF test-statistic is: (-1.3983) > Critical Value --> Not Stationary
 #Value of KPSS test-statistic is: (4.3156) > Critical Value -->  Not Stationary 
 
@@ -103,9 +103,9 @@ summary(ur.kpss(data_xts["1986-01/2020-01"]$real_sp500_return))
 #Value of KPSS test-statistic is: (0.0947) < Critical Value -->  Stationary 
 
 
-#Stationary Test for Fed Funds (Pre Covid)
-summary(ur.df(data_xts["1986-01/2020-01"]$fedfunds, type = "none", selectlags = "AIC"))
-summary(ur.kpss(data_xts["1986-01/2020-01"]$fedfunds))
+#Stationary Test for Fed Funds (Pre Covid) [Not Used]
+#summary(ur.df(data_xts["1986-01/2020-01"]$fedfunds, type = "none", selectlags = "AIC"))
+#summary(ur.kpss(data_xts["1986-01/2020-01"]$fedfunds))
 #Value of ADF test-statistic is: (-1.5807 ) > Critical Value --> Not Stationary
 #Value of KPSS test-statistic is: (4.7982) > Critical Value -->  Not Stationary 
 
@@ -151,3 +151,38 @@ summary(ur.kpss(data_xts["2005-06/2024-12"]$real_oil_price,type = "tau"))
 #Value of ADF test-statistic is: (-0.677) > Critical Value --> Not Stationary
 #Value of KPSS test-statistic is: (1.7359) > Critical Value --> Not Stationary
 #Value of KPSS test-statistic with trend is: (0.2658) > Critical Value -->  Not Stationary
+
+
+
+################################################ACF############################################################
+
+
+dir.create("Processed_Data/ACF", showWarnings = FALSE)
+
+png("Processed_Data/ACF/Oil Production Growth.png", width = 800, height = 600)
+acf(data_xts$oil_production_growth, main = "ACF Plot for Oil Production Growth")
+legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
+       fill = c("blue", "grey"), border = NA, bty = "n")
+dev.off()
+
+
+png("Processed_Data/ACF/Real Activity.png", width = 800, height = 600)
+acf(data_xts$real_activity, main = "ACF Plot for Real Activity")
+legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
+       fill = c("blue", "grey"), border = NA, bty = "n")
+dev.off()
+
+
+png("Processed_Data/ACF/Real Oil Price.png", width = 800, height = 600)
+acf(data_xts$real_oil_price, main = "ACF Plot for Real Oil Price")
+legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
+       fill = c("blue", "grey"), border = NA, bty = "n")
+dev.off()
+
+
+png("Processed_Data/ACF/Real Sp500 Return.png", width = 800, height = 600)
+acf(data_xts$real_sp500_return, main = "ACF Plot for Real SP500 Return")
+legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
+       fill = c("blue", "grey"), border = NA, bty = "n")
+dev.off()
+

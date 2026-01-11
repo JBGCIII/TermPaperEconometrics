@@ -2,16 +2,9 @@
 ###                               TVP_BSVAR                                                                ### 
 ##########################################################################################################
 
-# Comments about BMR. BMR appears to 
-
 # Load or install required packages
 required_packages <- c("readr", "dplyr", "purrr", "zoo","xts", "lubridate", "vars", "bsvars", 
-                      "bsvarSIGNs", "devtools", "Rcpp","ggplot2")
-
-
-str(Tvp_Kilian_Stock)
-
-
+                      "devtools", "Rcpp","ggplot2")
 
 installed <- required_packages %in% installed.packages()
 if (any(!installed)) {
@@ -45,12 +38,27 @@ Tvp_Kilian_Stock <- new(bvartvp)
 Tvp_Kilian_Stock$build(data = Kilian_Stock, const = TRUE, lags = 2)
 
 # 3. Define Hyperparameters
+
+#ISSUE
+# Prior ought be integrated as follow for a minnesota prior.
+#prior <- c(
+#  0, # Oil Production growth = Stationary --> 0
+#  1, # Real Activity = Not Stationary --> 1
+#  1, # Oil Price = Not Stationary --> 1
+#  0 # Sp500 return = Stationary --> 0
+#  )  
+
+#Looking at the help function
+#?bvartvp
+# It doesn't offer this.
+
 tau     <- 80    # Training sample (first 80 obs used to initialize the prior)
 XiBeta  <- 4     # Prior variance for the initial coefficients
 XiQ     <- 0.005 # Scaling for the variance of the coefficient drift (Q matrix)
 gammaQ  <- tau   # Degrees of freedom for the Q matrix prior
 XiSigma <- 1     # Scaling for the variance of the volatility drift (S matrix)
 gammaS  <- 4     # Degrees of freedom for the S matrix prior
+
 
 # 4. Apply Priors
 Tvp_Kilian_Stock$prior(tau,XiBeta,XiQ,gammaQ,XiSigma,gammaS) #See Above
@@ -65,7 +73,7 @@ saveRDS(Tvp_Kilian_Stock, file = "Processed_Data/Tvp_Kilian_Model.rds")
 dim(Tvp_Kilian_Stock$alpha_draws)
 
 
-#TVP_BSVAR result 
+#TVP_BSVAR results 
 plot(Tvp_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
 
 
@@ -74,78 +82,6 @@ plot(Tvp_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
 ###                                 2. Impulse Response Function                                       ### 
 
 
-
-
-
-
-
-
-###################################################Full Sample########################################### 
-
-
- png(
-    filename = "Processed_Data/Test",
-    width = 1800,
-    height = 1800,
-    res = 200
-  )
-  IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    var_names = colnames(Kilian_Stock),
-    percentiles = c(0.05, 0.5, 0.95),
-    save = TRUE
-  )
-
-  dev.off()
-
-
-
-IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    shock_scale = +1,
-    var_names = colnames(Kilian_Stock),
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-  )
-
-
-
-
-
-
-
-
-#Impulse Response Function (Full Sample)
-shock_names <- c("OilSupply", "AggregateDemand", "OilSpecificDemand")
-for (i in 1:3) {
-
-  png(
-    filename = paste0(
-      "Processed_Data/1986_to_2024_IRF_TVP_",
-      shock_names[i],
-      "_to_SP500.png"
-    ),
-    width = 1800,
-    height = 1800,
-    res = 200
-  )
-
-  IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    var_names = colnames(Kilian_Stock),
-    which_shock = i,
-    which_response = 4,
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-  )
-
-  dev.off()
-}
-
-if (file.exists("IRFs.eps")) file.remove("IRFs.eps")
 
 ###################################################Historical Periods######################################### 
 
@@ -223,8 +159,9 @@ if (file.exists("IRFs.eps")) file.remove("IRFs.eps")
 # irf_obj <- IRF.Rcpp_bvartvp(Tvp_Kilian_Stock, periods=10, which_shock=1, which_response=1, save=FALSE)
 # irf_obj <- IRF.Rcpp_bvartvp(Tvp_Kilian_Stock, periods=10, save=FALSE)
 # Both returns the same value in #irf_obj$plot_vals.
-# As such the variable of interest are (object = Tvp_Kilian_Stock, periods=10, shocks_row_order=TRUE)
-# The rest plot graph in R for extraction and speed up computing
+# As such the variable of interest are (object = Tvp_Kilian_Stock, periods=10, which_irf =Date of interest
+# shocks_row_order=TRUE)
+# The rest plot graph in R for extraction and speed up computing.
 
 # This is a shock in variable 1 (oil_production_growth) on variable oil_production_growth
 # The columns are:
@@ -254,225 +191,71 @@ target_index_GFC <- which(macro_data$date == "2008-09-01")
 which_irfs_GFC <- target_index_GFC - tau - 2
 print(which_irfs_GFC) #190
 
-
-
-
-lower  <- irf_obj$plot_vals[, 1, 1, 2]  # 5%
-median <- irf_obj$plot_vals[, 2, 1, 2]  # 50%
-upper  <- irf_obj$plot_vals[, 3, 1, 2]  # 95%
-
-lower_neg  <- -upper   # NOTE: swap!
-median_neg <- -median
-upper_neg  <- -lower
-h <- 1:10
-
-plot(h, median_neg, type="l", lwd=2,
-     ylim=range(lower_neg, upper_neg),
-     xlab="Horizon", ylab="Response")
-
-lines(h, lower_neg, lty=2)
-lines(h, upper_neg, lty=2)
-abline(h=0, col="gray")
-
-
-
-
-
-
-
-
-
-?IRF.Rcpp_bvartvp
-
-IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    var_names = colnames(Kilian_Stock),
-    shock_scale = +1,
-    shock_names =, 
-    which_shock = 2,
-    which_response = 1,
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-  )
-
-
-
-
-
-IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    var_names = colnames(Kilian_Stock),
-    shock_scale = +1,
-    which_shock = 1,        # first variable
-    which_response = 2:4,   # responses of other variables
-    shocks_row_order = TRUE
-)
-
-
-
-IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    var_names = colnames(Kilian_Stock),
-    shock_scale = -1,
-    which_shock = 1,        # first variable
-    which_response = 2:4,   # responses of other variables
-    shocks_row_order = FALSE
-)
-
-
-
-
-
-IRF.Rcpp_bvartvp(obj = Tvp_Kilian_Stock,
-                 periods = 10,
-                 var_names = colnames(Kilian_Stock),
-                 shock_scale = 1,
-                 which_shock = 2,
-                 percentiles = c(0.05,0.5,0.95),
-                 save = FALSE)
-
-IRF.Rcpp_bvartvp(obj = Tvp_Kilian_Stock,
-                 periods = 10,
-                 var_names = colnames(Kilian_Stock),
-                 shock_scale = -1,
-                 which_shock = 2,
-                 percentiles = c(0.05,0.5,0.95),
-                 save = FALSE)
-
-
-
-
-irf_pos <- IRF.Rcpp_bvartvp(
-  obj = Tvp_Kilian_Stock,
+irf_obj_gfc <- IRF.Rcpp_bvartvp(
+  Tvp_Kilian_Stock, 
+  periods= 15, 
+  which_irfs = which_irfs_GFC,
+  percentiles = c(0.05, 0.5, 0.95),
   var_names = colnames(Kilian_Stock),
-  periods = 10,
-  shock_scale = 1,
-  which_shock = 1,
-  which_response = 2,
-  save = FALSE
-)
+  shocks_row_order = TRUE, 
+  save=FALSE)
 
-irf_neg <- IRF.Rcpp_bvartvp(
-  obj = Tvp_Kilian_Stock,
-  periods = 10,
-  var_names = colnames(Kilian_Stock),
-  shock_scale = -1,
-  which_shock = 1,
-  which_response = 2,
-  save = FALSE
-)
+extract_irf <- function(irf, response, shock, negative = FALSE) {
+  lo <- irf$plot_vals[,1,response,shock]
+  md <- irf$plot_vals[,2,response,shock]
+  hi <- irf$plot_vals[,3,response,shock]
 
-# Compare raw posterior draws
-head(irf_pos$draws)
-head(irf_neg$draws)
+  if (negative) {
+    return(list(
+      lower  = -hi,
+      median = -md,
+      upper  = -lo
+    ))
+  }
 
-irf_pos$
-
-
-rf_neg_median <- -irf_pos$median  
-
-
-
-
-
-
-irf_obj <- IRF.Rcpp_bvartvp(Tvp_Kilian_Stock, periods=10, which_shock=2, which_response=1, save=FALSE)
-# Extract the median IRF
-IRF_median <- irf_obj$plot_vals[,2,1,2]  # check indices carefully
-# Negative shock
-IRF_neg <- -IRF_median
-plot(1:10, IRF_neg, type='l', col='red')
-
-
-
-irf_obj2 <- IRF.Rcpp_bvartvp(Tvp_Kilian_Stock, periods=10, save=FALSE)
-
-irf_obj2$plot_vals
-
-
-
-# Positive shock
-IRF_pos <- IRF_median
-
-# Then plot manually
-plot(1:10, IRF_pos, type='l', col='blue', ylim=range(c(IRF_pos, IRF_neg)))
-lines(1:10, IRF_neg, col='red')
-abline(h=0, lty=2)
-
-
-
-
-
-
-
-
-
-
-
-
-plot_flip_irf <- function(irf_obj, which_shock=1, which_response=1, periods=10, response_name=NULL, shock_name=NULL) {
-  
-  # Extract the 4D array: periods x 4 x response x shock
-  # Dimensions: 1=period, 2=c(lower, median, upper, time), 3=response, 4=shock
-  irf_array <- irf_obj$plot_vals
-  
-  Time <- 1:periods
-  
-  # Extract lower, median, upper
-  IRF_lower <- irf_array[,1,which_response,which_shock]
-  IRF_median <- irf_array[,2,which_response,which_shock]
-  IRF_upper <- irf_array[,3,which_response,which_shock]
-  
-  # Positive and negative shocks
-  IRF_pos <- IRF_median
-  IRF_neg <- -IRF_median
-  
-  # Flip confidence intervals for negative shock
-  IRF_lower_neg <- -IRF_upper
-  IRF_upper_neg <- -IRF_lower
-  
-  # Create a data frame for ggplot
-  plot_df <- data.frame(
-    Time = rep(Time, 4),
-    IRF = c(IRF_pos, IRF_neg, IRF_lower, IRF_upper),
-    Type = factor(rep(c("Positive Shock","Negative Shock","CI Lower","CI Upper"), each=periods))
-  )
-  
-  # Better approach: use separate data frames for pos and neg
-  library(ggplot2)
-  
-  df_pos <- data.frame(Time=Time, Median=IRF_pos, Lower=IRF_lower, Upper=IRF_upper)
-  df_neg <- data.frame(Time=Time, Median=IRF_neg, Lower=IRF_lower_neg, Upper=IRF_upper_neg)
-  
-  p <- ggplot() +
-    # Positive shock ribbon
-    geom_ribbon(data=df_pos, aes(x=Time, ymin=Lower, ymax=Upper), fill="blue", alpha=0.2) +
-    geom_line(data=df_pos, aes(x=Time, y=Median), color="blue", size=1.5) +
-    # Negative shock ribbon
-    geom_ribbon(data=df_neg, aes(x=Time, ymin=Lower, ymax=Upper), fill="red", alpha=0.2) +
-    geom_line(data=df_neg, aes(x=Time, y=Median), color="red", size=1.5) +
-    geom_hline(yintercept=0, linetype=2) +
-    labs(
-      x = "Horizon",
-      y = "Response",
-      title = paste0("IRF: Shock from ", ifelse(is.null(shock_name), which_shock, shock_name),
-                     " to ", ifelse(is.null(response_name), which_response, response_name))
-    ) +
-    theme_minimal()
-  
-  print(p)
+  list(lower = lo, median = md, upper = hi)
 }
 
+irf_oil  <- extract_irf(irf_obj_gfc, response = 1, shock = 2, negative = TRUE)
+irf_oilp <- extract_irf(irf_obj_gfc, response = 3, shock = 2, negative = TRUE)
+irf_sp   <- extract_irf(irf_obj_gfc, response = 4, shock = 2, negative = TRUE)
+h <- seq_len(length(irf_oil$median))
 
-plot_flip_irf(irf_obj = irf_obj, which_shock=2, which_response=1, periods=10,
-              response_name="Global GDP", shock_name="Oil Production")
 
+png(
+    filename = "Processed_Data/IRF/IRF_GFC.png",
+    width = 1800,
+    height = 1800,
+    res = 200
+  )
 
+par(mfrow = c(3,1), mar = c(4,4,2,1))
 
+plot(h, irf_oil$median, type="l", lwd=2,
+     ylim=range(irf_oil$lower, irf_oil$upper),
+     main="Oil Production",
+     xlab="Horizon", ylab="Response Percent Change Oil Production")
+lines(h, irf_oil$lower, lty=2)
+lines(h, irf_oil$upper, lty=2)
+abline(h=0, col="gray")
 
+plot(h, irf_oilp$median, type="l", lwd=2,
+     ylim=range(irf_oilp$lower, irf_oilp$upper),
+     main="Real Oil Price",
+     xlab="Horizon", ylab="Response Log Oil Price")
+lines(h, irf_oilp$lower, lty=2)
+lines(h, irf_oilp$upper, lty=2)
+abline(h=0, col="gray")
+
+plot(h, irf_sp$median, type="l", lwd=2,
+     ylim=range(irf_sp$lower, irf_sp$upper),
+     main="Real S&P 500 Return",
+     xlab="Horizon", ylab="Response in Real Return (%)")
+lines(h, irf_sp$lower, lty=2)
+lines(h, irf_sp$upper, lty=2)
+abline(h=0, col="gray")
+
+dev.off()
 
 
 
@@ -483,9 +266,54 @@ target_index_Covid <- which(macro_data$date == "2020-03-01")
 which_irfs_Covid <- target_index_Covid - tau - 2
 print(which_irfs_Covid) #328
 
+irf_obj_Covid <- IRF.Rcpp_bvartvp(
+  Tvp_Kilian_Stock, 
+  periods= 15, 
+  which_irfs = which_irfs_Covid,
+  percentiles = c(0.05, 0.5, 0.95),
+  var_names = colnames(Kilian_Stock),
+  shocks_row_order = TRUE, 
+  save=FALSE)
 
+irf_activity <- extract_irf(irf_obj_Covid, response = 2, shock = 1, negative = TRUE)
+irf_oilp     <- extract_irf(irf_obj_Covid, response = 3, shock = 1, negative = TRUE)
+irf_sp       <- extract_irf(irf_obj_Covid, response = 4, shock = 1, negative = TRUE)
+h <- seq_len(length(irf_activity$median))
 
+png(
+  filename = "Processed_Data/IRF/IRF_Covid_OilShock.png",
+  width = 1800,
+  height = 1800,
+  res = 200
+)
 
+par(mfrow = c(3,1), mar = c(4,4,2,1))
+
+plot(h, irf_activity$median, type="l", lwd=2,
+     ylim=range(irf_activity$lower, irf_activity$upper),
+     main="Response of Real Economic Activity",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_activity$lower, lty=2)
+lines(h, irf_activity$upper, lty=2)
+abline(h=0, col="gray")
+
+plot(h, irf_oilp$median, type="l", lwd=2,
+     ylim=range(irf_oilp$lower, irf_oilp$upper),
+     main="Response of Real Oil Price",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_oilp$lower, lty=2)
+lines(h, irf_oilp$upper, lty=2)
+abline(h=0, col="gray")
+
+plot(h, irf_sp$median, type="l", lwd=2,
+     ylim=range(irf_sp$lower, irf_sp$upper),
+     main="Response of Real S&P 500 Return",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_sp$lower, lty=2)
+lines(h, irf_sp$upper, lty=2)
+abline(h=0, col="gray")
+
+dev.off()
 
 
 ###################################################Ukraine Invasion##################################### 
@@ -494,24 +322,69 @@ target_index_Ukraine <- which(macro_data$date == "2022-03-01")
 which_irfs_ukraine <- target_index_Ukraine - tau - 2
 print(which_irfs_ukraine) #352
 
+irf_obj_Ukraine <- IRF.Rcpp_bvartvp(
+  Tvp_Kilian_Stock, 
+  periods= 15, 
+  which_irfs = which_irfs_ukraine,
+  percentiles = c(0.05, 0.5, 0.95),
+  var_names = colnames(Kilian_Stock),
+  shocks_row_order = TRUE, 
+  save=FALSE)
 
+# Extract IRFs (shock = real oil price = 3)
+irf_prod <- extract_irf(irf_obj_Ukraine, response = 1, shock = 3, negative = FALSE) # Oil production
+irf_activity <- extract_irf(irf_obj_Ukraine, response = 2, shock = 3, negative = FALSE) # Real activity
+irf_sp <- extract_irf(irf_obj_Ukraine, response = 4, shock = 3, negative = FALSE) # S&P 500
 
+h <- seq_len(length(irf_activity$median))
 
+png(
+  filename = "Processed_Data/IRF/IRF_Ukraine_Oil_Price_Shock.png",
+  width = 1800,
+  height = 1800,
+  res = 200
+)
 
+par(mfrow = c(3,1), mar = c(4,4,2,1))
 
+# Oil production
+plot(h, irf_prod$median, type="l", lwd=2,
+     ylim=range(irf_prod$lower, irf_prod$upper),
+     main="Response of Oil Production",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_prod$lower, lty=2)
+lines(h, irf_prod$upper, lty=2)
+abline(h=0, col="gray")
 
+# Real economic activity
+plot(h, irf_activity$median, type="l", lwd=2,
+     ylim=range(irf_activity$lower, irf_activity$upper),
+     main="Response of Real Economic Activity",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_activity$lower, lty=2)
+lines(h, irf_activity$upper, lty=2)
+abline(h=0, col="gray")
 
+# S&P 500
+plot(h, irf_sp$median, type="l", lwd=2,
+     ylim=range(irf_sp$lower, irf_sp$upper),
+     main="Response of Real S&P 500 Return",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_sp$lower, lty=2)
+lines(h, irf_sp$upper, lty=2)
+abline(h=0, col="gray")
 
+dev.off()
 
+###################################################Full Sample########################################### 
 
-
-
-
+#Impulse Response Function (Full Sample)
+shock_names <- c("OilSupply", "AggregateDemand", "OilSpecificDemand")
 for (i in 1:3) {
 
   png(
     filename = paste0(
-      "Processed_Data/IRF/Ukraine_War_IRF_TVP_",
+      "Processed_Data/1986_to_2024_IRF_TVP_",
       shock_names[i],
       "_to_SP500.png"
     ),
@@ -523,7 +396,6 @@ for (i in 1:3) {
   IRF.Rcpp_bvartvp(
     obj = Tvp_Kilian_Stock,
     periods = 10,
-    which_irfs = which_irfs_ukraine,
     var_names = colnames(Kilian_Stock),
     which_shock = i,
     which_response = 4,
@@ -538,161 +410,60 @@ if (file.exists("IRFs.eps")) file.remove("IRFs.eps")
 
 
 
-# Extract IRF
-irf <- IRF.Rcpp_bvartvp(...)
 
-# Interpret as negative supply shock
-irf_neg_supply <- -1 * irf
+# Having a FEVD would be helpfull in giving the relative importance of a shock.
+# This is once more due to the limitation of the BMR package. Below I list all functions.
+#ls("package:BMR")
 
-
-
-
-
-    IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    which_irfs = which_irfs_ukraine,
-    var_names = colnames(Kilian_Stock),
-    shock_scale = -1,
-    which_shock = 1,
-    which_response = 4,
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-  )
-
-
-
-
-IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    which_irfs = which_irfs_ukraine,
-    var_names = colnames(Kilian_Stock),
-    shock_scale = -1,
-    which_shock = 1,
-    which_response = 2:4,
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-)
-
-
-
-
-
-
- IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    which_irfs = which_irfs_ukraine,   # or whatever draws you use
-    var_names = colnames(Kilian_Stock),
-    shock_scale = 1,                    # positive 1 SD shock
-    which_shock = 2,                    # shock to the second variable
-    which_response = c(1,3,4),          # responses of 1st, 3rd, and 4th variables
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-)
+ #[1] "bvarcnw"                        "bvarcnw_cpp"
+ #[3] "bvarinw"                        "bvarinw_cpp"
+ #[5] "bvarm"                          "bvarm_cpp"
+ #[7] "bvars"                          "bvars_cpp"
+ #[9] "bvartvp"                        "bvartvp_cpp"
+#[11] "cvar"                           "cvar_cpp"
+#[13] "dsge_gensys"                    "dsge_gensys_cpp"
+#[15] "dsge_uhlig"                     "dsge_uhlig_cpp"
+#[17] "dsgevar_gensys"                 "dsgevar_gensys_cpp"
+#[19] "dsgevar_uhlig"                  "dsgevar_uhlig_cpp"
+#[21] "FEVD"                           "FEVD.Rcpp_bvarcnw"
+#[23] "FEVD.Rcpp_bvarinw"              "FEVD.Rcpp_bvarm"
+#[25] "FEVD.Rcpp_bvars"                "FEVD.Rcpp_cvar"
+#[27] "forecast"                       "forecast.Rcpp_bvarcnw"
+#[29] "forecast.Rcpp_bvarinw"          "forecast.Rcpp_bvarm"
+#[31] "forecast.Rcpp_bvars"            "forecast.Rcpp_cvar"
+#[33] "forecast.Rcpp_dsge_gensys"      "forecast.Rcpp_dsge_uhlig"
+#[35] "forecast.Rcpp_dsgevar_gensys"   "forecast.Rcpp_dsgevar_uhlig"   
+#[37] "gensys"                         "gensys_cpp"
+#[39] "gtsplot"                        "IRF"
+#[41] "IRF.Rcpp_bvarcnw"               "IRF.Rcpp_bvarinw"
+#[43] "IRF.Rcpp_bvarm"                 "IRF.Rcpp_bvars"
+#[45] "IRF.Rcpp_bvartvp"               "IRF.Rcpp_cvar"
+#[47] "IRF.Rcpp_dsge_gensys"           "IRF.Rcpp_dsge_uhlig"
+#[49] "IRF.Rcpp_dsgevar_gensys"        "IRF.Rcpp_dsgevar_uhlig"
+#[51] "IRF.Rcpp_gensys"                "IRF.Rcpp_uhlig"                
+#[53] "IRFcomp"                        "mode_check"
+#[55] "mode_check.Rcpp_dsge_gensys"    "mode_check.Rcpp_dsge_uhlig"    
+#[57] "mode_check.Rcpp_dsgevar_gensys" "mode_check.Rcpp_dsgevar_uhlig"
+#[59] "plot.Rcpp_bvarcnw"              "plot.Rcpp_bvarinw"
+#[61] "plot.Rcpp_bvarm"                "plot.Rcpp_bvars"
+#[63] "plot.Rcpp_bvartvp"              "plot.Rcpp_cvar"
+#[65] "plot.Rcpp_dsge_gensys"          "plot.Rcpp_dsge_uhlig"
+#[67] "plot.Rcpp_dsgevar_gensys"       "plot.Rcpp_dsgevar_uhlig"
+#[69] "prior"                          "states"
+#[71] "states.Rcpp_dsge_gensys"        "states.Rcpp_dsge_uhlig"        
+#[73] "states.Rcpp_dsgevar_gensys"     "states.Rcpp_dsgevar_uhlig"
+#[75] "uhlig"                          "uhlig_cpp"
 
 
+#No FEVD functon exists for bvartvp and applying the following codes:
 
+#BMR::FEVD(
+#  Tvp_Kilian_Stock,
+#  horizon = 15,                      
+#  var_names = colnames(Kilian_Stock),
+#  save = FALSE,                        
+#)
 
-
- IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    which_irfs = which_irfs_ukraine,   # or whatever draws you use
-    var_names = colnames(Kilian_Stock),
-    shock_scale = 1,                    # positive 1 SD shock
-    which_shock = 1,                    # shock to the second variable
-    which_response = 3,          # responses of 1st, 3rd, and 4th variables
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-)
-
-
-
-
-
-
-
- IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    which_irfs = which_irfs_ukraine,   # or whatever draws you use
-    var_names = colnames(Kilian_Stock),
-    shock_scale = 1,                    # positive 1 SD shock
-    which_shock = 3,                    # shock to the second variable
-    which_response = c(1,2,4),          # responses of 1st, 3rd, and 4th variables
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-)
-
-
-
-
-
-
-
-###################################################Full Sample########################################### 
-
-
-
-# Calculate the correct index for Feb 2022 relative to the 386 slices
-target_index_Ukraine <- 352 
-
-# Ensure it's within the 386 limit
-if(target_index_Ukraine <= 386){
-
-  IRF.Rcpp_bvartvp(Tvp_Kilian_Stock, 
-      periods = 10, 
-      which_irfs = target_index_Ukraine, 
-      var_names = colnames(Kilian_Stock),
-      save = FALSE)
-} else {
-  print("Index still too high for the 386 available periods.")
-}
-
-
-
-IRF.Rcpp_bvartvp(Tvp_Kilian_Stock, periods = 10, which_irfs=386, var_names = colnames(Kilian_Stock), save=FALSE)
-
-
-
-
-target_index_Ukraine <- which(macro_data$date == "2022-03-01")
-
-print(target_index_Ukraine)
-
-for (i in 1:3) {
-
-  png(
-    filename = paste0(
-      "Processed_Data/TestUkraine_War_IRF_TVP_",
-      shock_names[i],
-      "_to_SP500.png"
-    ),
-    width = 1800,
-    height = 1800,
-    res = 200
-  )
-
-  IRF.Rcpp_bvartvp(
-    obj = Tvp_Kilian_Stock,
-    periods = 10,
-    which_irfs = 387,
-    var_names = colnames(Kilian_Stock),
-    which_shock = 1,
-    which_response = 4,
-    percentiles = c(0.05, 0.5, 0.95),
-    save = FALSE
-  )
-
-  dev.off()
-}
-
-if (file.exists("IRFs.eps")) file.remove("IRFs.eps")
-
-
-target_index_Ukraine
-
-
-
+#Return the following: Error in UseMethod("FEVD") :
+#no applicable method for 'FEVD' applied to an object of class "c('Rcpp_bvartvp', 'C++Object', 'envRefClass', 
+#'.environment', 'refClass', 'environment', 'refObject')"

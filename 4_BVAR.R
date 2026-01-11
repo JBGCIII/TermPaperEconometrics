@@ -6,8 +6,7 @@
 
 # Load or install required packages
 required_packages <- c("readr", "dplyr", "purrr", "zoo","xts", "lubridate", "vars", "bsvars", 
-                      "bsvarSIGNs", "devtools", "Rcpp","ggplot2")
-
+                       "devtools", "Rcpp","ggplot2")
 
 
 installed <- required_packages %in% installed.packages()
