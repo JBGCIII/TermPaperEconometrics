@@ -75,8 +75,8 @@ dir.create("Processed_Data/IRF2", showWarnings = FALSE) #IRF2 will hold the resu
 ###################################################Global Financial Crisis############################# 
 
 target_index_GFC <- which(macro_data$date == "2008-09-01")
-which_irfs_GFC <- target_index_GFC - tau - 2
-print(which_irfs_GFC) #190
+which_irfs_GFC <- target_index_GFC - 6 #Super important to change!
+print(which_irfs_GFC) 
 
 png(
     filename = "Processed_Data/IRF2/Graph_04.b_IRF_GFC_all.png",
@@ -181,8 +181,8 @@ dev.off()
 ##                                                                                                   ##
 
 target_index_Covid <- which(macro_data$date == "2020-03-01")
-which_irfs_Covid <- target_index_Covid - tau - 2
-print(which_irfs_Covid) #328
+which_irfs_Covid <- target_index_Covid - 6 #Super important to change!
+print(which_irfs_Covid) 
 
 png(
     filename = "Processed_Data/IRF2/Graph_06.b_IRF_Covid_all.png",
@@ -268,8 +268,8 @@ dev.off()
 ##                                                                                                   ##
 
 target_index_Ukraine <- which(macro_data$date == "2022-03-01")
-which_irfs_ukraine <- target_index_Ukraine - tau - 2
-print(which_irfs_ukraine) #352
+which_irfs_ukraine <- target_index_Ukraine - 6 #Super important to change!
+print(which_irfs_ukraine) 
 
 png(
     filename = "Processed_Data/IRF2/Graph_08.b_IRF_Ukraine_all.png",
