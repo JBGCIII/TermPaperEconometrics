@@ -152,10 +152,8 @@ summary(ur.kpss(data_xts["2005-06/2024-12"]$real_oil_price,type = "tau"))
 #Value of KPSS test-statistic is: (1.7359) > Critical Value --> Not Stationary
 #Value of KPSS test-statistic with trend is: (0.2658) > Critical Value -->  Not Stationary
 
-
-
-################################################ACF############################################################
-
+##########################################################################################################
+###                                 2. ACF tests (1986-2020)                                           ### 
 
 dir.create("Processed_Data/ACF", showWarnings = FALSE)
 

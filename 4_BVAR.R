@@ -64,32 +64,32 @@ Bvar_Kilian_Stock$prior(
 # Posterior distributions of the coefficients
 Bvar_Kilian_Stock$gibbs(10000)
 
-plot(Bvar_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
+BMR::plot.Rcpp_bvars(Bvar_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
 
 ##########################################################################################################
 ###                                 2. Impulse Response Function                                       ### 
+##########################################################################################################
+
+dir.create("Processed_Data/IRF2", showWarnings = FALSE) #IRF2 will hold the results of the BVAR
 
 ###################################################Global Financial Crisis############################# 
-
-dir.create("Processed_Data/IRF2", showWarnings = FALSE)
 
 target_index_GFC <- which(macro_data$date == "2008-09-01")
 which_irfs_GFC <- target_index_GFC - tau - 2
 print(which_irfs_GFC) #190
 
 png(
-    filename = "Processed_Data/FEVD/BVAR_FEVD_GFC4.png",
+    filename = "Processed_Data/IRF2/Graph_04.b_IRF_GFC_all.png",
     width = 1800,
     height = 2500,
     res = 200
   )
 
-irf_obj_gfc <- IRF.Rcpp_bvars(
+irf_obj_gfc <- BMR::IRF.Rcpp_bvars(
   Bvar_Kilian_Stock, 
   periods= 15, 
   which_irfs = which_irfs_GFC,
   percentiles = c(0.05, 0.5, 0.95),
-  var_names = colnames(Kilian_Stock),
   shocks_row_order = TRUE, 
   save=FALSE)
 
@@ -118,7 +118,7 @@ h <- seq_len(length(irf_oil$median))
 
 
 png(
-    filename = "Processed_Data/IRF2/IRF_GFC_BVAR.png",
+    filename = "Processed_Data/IRF2/Graph_05.b_IRF_GFC_KilianShock.png",
     width = 1800,
     height = 1800,
     res = 200
@@ -152,18 +152,13 @@ abline(h=0, col="gray")
 
 dev.off()
 
-####################################################FEVD
+####################################################FEVD GFC########################################################################
 
-dir.create("Processed_Data/FEVD", showWarnings = FALSE)
-
-
-
-
+dir.create("Processed_Data/FEVD", showWarnings = FALSE) # creates a directory for FEVD
 #Note Variance is squared, hence we do not need to decompse things as before.
 
-
 png(
-    filename = "Processed_Data/FEVD/BVAR_FEVD_GFC2.png",
+    filename = "Processed_Data/FEVD/Graph_04.c_FEVD_BVAR_GFC.png",
     width = 1800,
     height = 2500,
     res = 200
@@ -173,8 +168,186 @@ png(
     Bvar_Kilian_Stock,
     periods = 15, 
     cumulative = FALSE,
-    var_names = colnames(Kilian_Stock),
     which_irfs = which_irfs_GFC,
+    percentiles = c(0.05, 0.5, 0.95),
+    shocks_row_order = TRUE,
+    save = FALSE
+  )
+
+dev.off()
+
+
+###################################################Covid-19 Outbreak################################### 
+##                                                                                                   ##
+
+target_index_Covid <- which(macro_data$date == "2020-03-01")
+which_irfs_Covid <- target_index_Covid - tau - 2
+print(which_irfs_Covid) #328
+
+png(
+    filename = "Processed_Data/IRF2/Graph_06.b_IRF_Covid_all.png",
+    width = 1800,
+    height = 2500,
+    res = 200
+  )
+irf_obj_Covid <- BMR::IRF.Rcpp_bvars(
+  Bvar_Kilian_Stock,  
+  periods= 15, 
+  which_irfs = which_irfs_Covid,
+  percentiles = c(0.05, 0.5, 0.95),
+  #var_names = colnames(Kilian_Stock), -
+  shocks_row_order = TRUE, 
+  save=FALSE)
+  dev.off()
+
+
+irf_activity <- extract_irf(irf_obj_Covid, response = 2, shock = 1, negative = TRUE)
+irf_oilp     <- extract_irf(irf_obj_Covid, response = 3, shock = 1, negative = TRUE)
+irf_sp       <- extract_irf(irf_obj_Covid, response = 4, shock = 1, negative = TRUE)
+h <- seq_len(length(irf_activity$median))
+
+png(
+  filename = "Processed_Data/IRF2/Graph_07.b_IRF_Covid_OilShock.png",
+  width = 1800,
+  height = 1800,
+  res = 200
+)
+
+par(mfrow = c(3,1), mar = c(4,4,2,1))
+
+plot(h, irf_activity$median, type="l", lwd=2,
+     ylim=range(irf_activity$lower, irf_activity$upper),
+     main="Response of Real Economic Activity",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_activity$lower, lty=2)
+lines(h, irf_activity$upper, lty=2)
+abline(h=0, col="gray")
+
+plot(h, irf_oilp$median, type="l", lwd=2,
+     ylim=range(irf_oilp$lower, irf_oilp$upper),
+     main="Response of Real Oil Price",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_oilp$lower, lty=2)
+lines(h, irf_oilp$upper, lty=2)
+abline(h=0, col="gray")
+
+plot(h, irf_sp$median, type="l", lwd=2,
+     ylim=range(irf_sp$lower, irf_sp$upper),
+     main="Response of Real S&P 500 Return",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_sp$lower, lty=2)
+lines(h, irf_sp$upper, lty=2)
+abline(h=0, col="gray")
+
+dev.off()
+
+####################################################FEVD COVID########################################################################
+
+
+png(
+    filename = "Processed_Data/FEVD/Graph_06.c_FEVD_BVAR_COVID.png",
+    width = 1800,
+    height = 2500,
+    res = 200
+  )
+
+  BMR::FEVD.Rcpp_bvars(
+    Bvar_Kilian_Stock,
+    periods = 15, 
+    cumulative = FALSE,
+    which_irfs = which_irfs_GFC,
+    percentiles = c(0.05, 0.5, 0.95),
+    shocks_row_order = TRUE,
+    save = FALSE
+  )
+
+dev.off()
+
+
+###################################################Ukraine Invasion##################################### 
+##                                                                                                   ##
+
+target_index_Ukraine <- which(macro_data$date == "2022-03-01")
+which_irfs_ukraine <- target_index_Ukraine - tau - 2
+print(which_irfs_ukraine) #352
+
+png(
+    filename = "Processed_Data/IRF2/Graph_08.b_IRF_Ukraine_all.png",
+    width = 1800,
+    height = 2500,
+    res = 200
+  )
+irf_obj_Ukraine <- BMR::IRF.Rcpp_bvars(
+  Bvar_Kilian_Stock,
+  periods= 15, 
+  which_irfs = which_irfs_ukraine,
+  percentiles = c(0.05, 0.5, 0.95),
+  shocks_row_order = TRUE, 
+  save=FALSE)
+dev.off()
+
+
+# Extract IRFs (shock = real oil price = 3)
+irf_prod <- extract_irf(irf_obj_Ukraine, response = 1, shock = 3, negative = FALSE) # Oil production
+irf_activity <- extract_irf(irf_obj_Ukraine, response = 2, shock = 3, negative = FALSE) # Real activity
+irf_sp <- extract_irf(irf_obj_Ukraine, response = 4, shock = 3, negative = FALSE) # S&P 500
+
+h <- seq_len(length(irf_activity$median))
+
+png(
+  filename = "Processed_Data/IRF2/Graph_09.b_Ukraine_Oil_Price_Shock.png",
+  width = 1800,
+  height = 1800,
+  res = 200
+)
+
+par(mfrow = c(3,1), mar = c(4,4,2,1))
+
+# Oil production
+plot(h, irf_prod$median, type="l", lwd=2,
+     ylim=range(irf_prod$lower, irf_prod$upper),
+     main="Response of Oil Production",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_prod$lower, lty=2)
+lines(h, irf_prod$upper, lty=2)
+abline(h=0, col="gray")
+
+# Real economic activity
+plot(h, irf_activity$median, type="l", lwd=2,
+     ylim=range(irf_activity$lower, irf_activity$upper),
+     main="Response of Real Economic Activity",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_activity$lower, lty=2)
+lines(h, irf_activity$upper, lty=2)
+abline(h=0, col="gray")
+
+# S&P 500
+plot(h, irf_sp$median, type="l", lwd=2,
+     ylim=range(irf_sp$lower, irf_sp$upper),
+     main="Response of Real S&P 500 Return",
+     xlab="Horizon", ylab="Response")
+lines(h, irf_sp$lower, lty=2)
+lines(h, irf_sp$upper, lty=2)
+abline(h=0, col="gray")
+
+dev.off()
+
+####################################################FEVD UKRAINE ########################################################################
+
+
+
+png(
+    filename = "Processed_Data/FEVD/Graph_08.c_FEVD_BVAR_Ukraine.png",
+    width = 1800,
+    height = 2500,
+    res = 200
+  )
+
+  BMR::FEVD.Rcpp_bvars(
+    Bvar_Kilian_Stock,
+    periods = 15, 
+    cumulative = FALSE,
+    which_irfs = which_irfs_ukraine,
     percentiles = c(0.05, 0.5, 0.95),
     shocks_row_order = TRUE,
     save = FALSE
@@ -189,13 +362,6 @@ dev.off()
 
 
 
-###################################################FEVD############################################################ 
-
-
-
-
-
-#############################
 
 
 
@@ -205,57 +371,3 @@ dev.off()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-setwd("Processed_Data")  # Temporary working directory
-
-for (i in 1:3) {
-  BMR::FEVD.Rcpp_bvars(
-    Bvar_Kilian_Stock,
-    periods = 15, # As in Kilian & Park (2009)
-    cumulative = FALSE,
-    var_names = colnames(Kilian_Stock),
-    percentiles = c(0.05, 0.5, 0.95),
-    shocks_row_order = TRUE,
-    save = FALSE
-    #save_format = "pdf",
-    #save_title = paste0("FEVD_", shock_names[i], "_to_SP500")  # Just filename
-  )
-  
-  # Delete default empty IRF.pdf if created
-  if (file.exists("FEVDs.pdf")) file.remove("FEVDs.pdf")
-}
-setwd(old_wd)  # Restore original working directory
-
-
-#FEVD
-# Forecast Error Variance Decomposition (15 months ahead)
-setwd("Processed_Data")  
-fevd_result <- BMR::FEVD.Rcpp_bvars(
-  Bvar_Kilian_Stock,
-  horizon = 15,                       # Forecast horizon
-  var_names = colnames(Kilian_Stock),
-  save = TRUE,                         # Saves plots
-  save_format = "pdf",
-  save_title = "Processed_Data/FEVD_Kilian_Stock.pdf"  # Save in Processed_Data
-)
-
-setwd(old_wd)  # Restore original working directory

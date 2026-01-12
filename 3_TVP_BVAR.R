@@ -15,11 +15,6 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 devtools::install_github("kthohr/BMR") #Note, You need to install devtools before installing this from GIT.
 library(BMR)
 
-
-dir.create("Processed_Data/IRF", showWarnings = FALSE)
-
-
-
 # Read processed macro data
 macro_data <- read_csv("Processed_Data/Processed_1986_2024.csv")
 
@@ -67,7 +62,7 @@ Tvp_Kilian_Stock$prior(tau,XiBeta,XiQ,gammaQ,XiSigma,gammaS) #See Above
 Tvp_Kilian_Stock$gibbs(10000, #Total Iteration
                         5000) #Burn-In
 
-saveRDS(Tvp_Kilian_Stock, file = "Processed_Data/Tvp_Kilian_Model.rds")
+saveRDS(Tvp_Kilian_Stock, file = "Processed_Data/Tvp_Kilian_Model.rds") #Allows to save the RDS
 
 
 dim(Tvp_Kilian_Stock$alpha_draws)
@@ -87,6 +82,8 @@ plot(Tvp_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
 ##########################################################################################################
 ###                                 2. Impulse Response Function                                       ### 
 ########################################################################################################## 
+
+dir.create("Processed_Data/IRF", showWarnings = FALSE) # Creates Directory for IRF
 
 #Because a TVP-BVAR model allows coefficients to change at every single point in time, 
 #the relationship between variables (the Impulse Response) is also different at every point in time. 
@@ -189,7 +186,7 @@ plot(Tvp_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
 
 
 ###################################################Global Financial Crisis############################# 
-
+##                                                                                                   ##
 target_index_GFC <- which(macro_data$date == "2008-09-01")
 which_irfs_GFC <- target_index_GFC - tau - 2
 print(which_irfs_GFC) #190
@@ -205,7 +202,7 @@ irf_obj_gfc <- IRF.Rcpp_bvartvp(
   periods= 15, 
   which_irfs = which_irfs_GFC,
   percentiles = c(0.05, 0.5, 0.95),
-  var_names = colnames(Kilian_Stock),
+  #var_names = colnames(Kilian_Stock), Using Var names makes the graph look cluttered as such they are removed
   shocks_row_order = TRUE, 
   save=FALSE)
 
@@ -272,6 +269,7 @@ dev.off()
 
 
 ###################################################Covid-19 Outbreak################################### 
+##                                                                                                   ##
 
 target_index_Covid <- which(macro_data$date == "2020-03-01")
 which_irfs_Covid <- target_index_Covid - tau - 2
@@ -288,7 +286,6 @@ irf_obj_Covid <- IRF.Rcpp_bvartvp(
   periods= 15, 
   which_irfs = which_irfs_Covid,
   percentiles = c(0.05, 0.5, 0.95),
-  var_names = colnames(Kilian_Stock),
   shocks_row_order = TRUE, 
   save=FALSE)
   dev.off()
@@ -336,6 +333,7 @@ dev.off()
 
 
 ###################################################Ukraine Invasion##################################### 
+##                                                                                                   ##
 
 target_index_Ukraine <- which(macro_data$date == "2022-03-01")
 which_irfs_ukraine <- target_index_Ukraine - tau - 2
@@ -352,7 +350,6 @@ irf_obj_Ukraine <- IRF.Rcpp_bvartvp(
   periods= 15, 
   which_irfs = which_irfs_ukraine,
   percentiles = c(0.05, 0.5, 0.95),
-  var_names = colnames(Kilian_Stock),
   shocks_row_order = TRUE, 
   save=FALSE)
 dev.off()
