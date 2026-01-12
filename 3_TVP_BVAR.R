@@ -75,9 +75,8 @@ dim(Tvp_Kilian_Stock$alpha_draws)
 #BMR only plots in PDF and EPS which is a nightmare to copy inside the document hence i tried to use other
 #methods by they failed. The following code works when it comes to saving IRF for all variables.
 #png(filename = "Processed_Data/Graph_3_TVP_BVAR_Results.png")
-plot(Tvp_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
+BMR::plot.Rcpp_bvartvp(Tvp_Kilian_Stock, var_names = colnames(Kilian_Stock), save = FALSE)
 #dev.off()
-
 
 ##########################################################################################################
 ###                                 2. Impulse Response Function                                       ### 
