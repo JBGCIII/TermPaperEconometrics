@@ -21,7 +21,7 @@ data_xts <- xts(
       real_activity,
       real_oil_price,
       real_sp500_return,
-      fedfunds
+      #fedfunds
     ),
   order.by = macro_data$date
 )
