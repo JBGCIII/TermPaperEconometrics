@@ -3,6 +3,7 @@
 # Load or install required packages
 required_packages <- c("readr", "dplyr", "zoo","xts")
 
+
 installed <- required_packages %in% installed.packages()
 if (any(!installed)) {
   install.packages(required_packages[!installed])
@@ -15,6 +16,10 @@ macro_data <- read_csv("Processed_Data/Processed_1986_2024.csv")%>%
   mutate(date = as.Date(date))
 
 
+# Ensure correct working directory
+if(!file.exists("Processed_Data/Processed_1986_2024.csv")){
+  stop("Processed CSV not found. Check working directory!")
+}
 
 data_xts <- xts(
   macro_data %>% 
@@ -28,7 +33,9 @@ data_xts <- xts(
   order.by = macro_data$date
 )
 
-dim(data_xts)
+print(dim(data_xts))
+
+
 
 
 # Save plots
