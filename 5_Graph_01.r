@@ -11,7 +11,8 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 
 
 # Read processed macro data
-macro_data <- read_csv("Processed_Data/Processed_1986_2024.csv")
+macro_data <- read_csv("Processed_Data/Processed_1986_2024.csv")%>%
+  mutate(date = as.Date(date))
 
 data_xts <- xts(
   macro_data %>% 
