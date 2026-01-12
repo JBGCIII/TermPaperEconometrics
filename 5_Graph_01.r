@@ -35,9 +35,7 @@ data_xts <- xts(
 
 print(dim(data_xts))
 
-
-
-png("Processed_Data/Graph_01_Plotted_Processed_Variables.png", width = 1200, height = 1000)
+png("Processed_Data/Graph_01_Plotted_Processed_Variables.png", width = 1000, height = 1000)
 par(mfrow = c(2, 2))
 {
   plot(data_xts$real_oil_price, main = "Real Oil Price (Log levels)", ylab = "Log Price", col = "darkgreen", lwd = 1)
@@ -47,7 +45,7 @@ par(mfrow = c(2, 2))
 }
 dev.off()
 
-source("plot_graphs.R", echo = TRUE)
+#source("plot_graphs.R", echo = TRUE)
 
 png("test.png")
 plot(1:10)
