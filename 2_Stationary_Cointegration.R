@@ -32,7 +32,6 @@ data_xts <- xts(
 ##########################################################################################################
 ###                                 1. Unit root tests (1986-2024)                                     ### 
 
-
 #Stationary Test Oil for Production Growth
 summary(ur.df(data_xts$oil_production_growth, type = "none", selectlags = "AIC"))
 summary(ur.kpss(data_xts$oil_production_growth))
@@ -66,10 +65,8 @@ summary(ur.kpss(data_xts$real_sp500_return))
 #Value of ADF test-statistic is: (-1.3983) > Critical Value --> Not Stationary
 #Value of KPSS test-statistic is: (4.3156) > Critical Value -->  Not Stationary 
 
-#Start
 ##########################################################################################################
 ###                                 2. Unit root tests (1986-2020)                                     ### 
-
 
 #Stationary Test Oil for Production Growth (Pre Covid)
 summary(ur.df(data_xts["1986-01/2020-01"]$oil_production_growth, type = "none", selectlags = "AIC"))
@@ -108,8 +105,6 @@ summary(ur.kpss(data_xts["1986-01/2020-01"]$real_sp500_return))
 #summary(ur.kpss(data_xts["1986-01/2020-01"]$fedfunds))
 #Value of ADF test-statistic is: (-1.5807 ) > Critical Value --> Not Stationary
 #Value of KPSS test-statistic is: (4.7982) > Critical Value -->  Not Stationary 
-
-
 
 ##########################################################################################################
 ###                                 3. Unit root tests (1986-2005)                                     ### 
