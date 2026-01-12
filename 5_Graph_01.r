@@ -41,7 +41,7 @@ print(dim(data_xts))
 # Save plots
 png("Processed_Data/Graph_01_Plotted_Processed_Variables.png", width = 1200, height = 1000)
 par(mfrow = c(2, 2))  # Rows and Colomns
-
+{
 # 1. Real Oil Price (Logged/Deflated)
 plot(data_xts$real_oil_price, 
      main = "Real Oil Price (Log levels)",
@@ -70,7 +70,7 @@ plot(data_xts$real_sp500_return,
      ylab = "Real Return (%)",
      col = "purple",
      lwd = 1)
-
+}
 # 5. Fed Funds Rate
 #plot(data_xts$fedfunds, 
 #     main = "Federal Funds Rate",
