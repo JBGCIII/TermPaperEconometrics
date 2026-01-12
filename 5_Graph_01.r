@@ -37,46 +37,18 @@ print(dim(data_xts))
 
 
 
-
-# Save plots
 png("Processed_Data/Graph_01_Plotted_Processed_Variables.png", width = 1200, height = 1000)
-par(mfrow = c(2, 2))  # Rows and Colomns
+par(mfrow = c(2, 2))
 {
-# 1. Real Oil Price (Logged/Deflated)
-plot(data_xts$real_oil_price, 
-     main = "Real Oil Price (Log levels)",
-     ylab = "Log Price",
-     col = "darkgreen",
-     lwd = 1)
-
-# 2. Oil Production Growth
-plot(data_xts$oil_production_growth, 
-     main = "Global Oil Production Growth (%)",
-     ylab = "Percent Change",
-     col = "brown",
-     lwd = 1)
-
-# 3. Global Real Economic Activity
-plot(data_xts$real_activity, 
-     main = "Global Real Economic Activity",
-     ylab = "Index",
-     col = "blue",
-     lwd = 1)
-
-# 4. Real S&P 500 Returns
-# Note: Changed from 'sp500_ret' to 'real_sp500_return' per your list
-plot(data_xts$real_sp500_return, 
-     main = "Real S&P 500 Monthly Returns (%)",
-     ylab = "Real Return (%)",
-     col = "purple",
-     lwd = 1)
+  plot(data_xts$real_oil_price, main = "Real Oil Price (Log levels)", ylab = "Log Price", col = "darkgreen", lwd = 1)
+  plot(data_xts$oil_production_growth, main = "Global Oil Production Growth (%)", ylab = "Percent Change", col = "brown", lwd = 1)
+  plot(data_xts$real_activity, main = "Global Real Economic Activity", ylab = "Index", col = "blue", lwd = 1)
+  plot(data_xts$real_sp500_return, main = "Real S&P 500 Monthly Returns (%)", ylab = "Real Return (%)", col = "purple", lwd = 1)
 }
-# 5. Fed Funds Rate
-#plot(data_xts$fedfunds, 
-#     main = "Federal Funds Rate",
-#     ylab = "Percent",
-#     col = "darkred",
-#     lwd = 1)
+dev.off()
 
-# Close PNG
+source("plot_graphs.R", echo = TRUE)
+
+png("test.png")
+plot(1:10)
 dev.off()
