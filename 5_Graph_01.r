@@ -38,7 +38,7 @@ print(dim(data_xts))
 png("Processed_Data/Graph_01_Plotted_Processed_Variables.png", width = 1200, height = 1000)
 par(mfrow = c(2, 2))
 
-lot.zoo(data_xts$real_oil_price,
+plot.zoo(data_xts$real_oil_price,
          main = "Real Oil Price (Log levels)",
          ylab = "Log Price",
          col = "darkgreen",
