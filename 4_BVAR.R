@@ -2,8 +2,6 @@
 ###                               BSVAR                                                                ### 
 ##########################################################################################################
 
-# Comments about BMR. BMR appears to 
-
 # Load or install required packages
 required_packages <- c("readr", "dplyr", "purrr", "zoo","xts", "lubridate", "vars", "bsvars", 
                        "devtools", "Rcpp","ggplot2")

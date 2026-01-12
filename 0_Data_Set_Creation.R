@@ -34,7 +34,6 @@ dir.create("Raw_Data", showWarnings = FALSE)
 #                                         S&P 500 (Yahoo)
 ##########################################################################################################
 
-
 # 1. Download daily S&P 500 prices
 getSymbols("^GSPC", src = "yahoo", from = "1986-01-01", to = "2024-12-03") 
 
@@ -71,7 +70,6 @@ fredr_set_key(Sys.getenv("FRED_API_KEY"))
 # 4. FEDFUNDS: Effective Federal Funds Rate (For the monetary policy debate)
 
 kilian_series <- c("WCOILWTICO", "IGREA", "CPIAUCSL", "FEDFUNDS")
-
 
 # Download Raw Data
 raw_data_list <- map(kilian_series, ~fredr(

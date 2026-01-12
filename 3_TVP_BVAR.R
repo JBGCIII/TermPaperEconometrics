@@ -1,5 +1,5 @@
 ##########################################################################################################
-###                               TVP_BVAR                                                                ### 
+###                                  TVP_BVAR                                                          ### 
 ##########################################################################################################
 
 # Load or install required packages
@@ -13,26 +13,25 @@ if (any(!installed)) {
 invisible(lapply(required_packages, library, character.only = TRUE))
 
 devtools::install_github("kthohr/BMR") #Note, You need to install devtools before installing this from GIT.
-library(BMR)
+library(BMR) # Load the hellish package.
 
 # Read processed macro data
 macro_data <- read_csv("Processed_Data/Processed_1986_2024.csv")
-
 
 ##########################################################################################################
 ###                                 1. Data Preparation                                                ### 
 
 
-# 1. Prepare Data
+# Prepare Data
 Kilian_Stock <- macro_data %>%
   dplyr::select(oil_production_growth, real_activity, real_oil_price, real_sp500_return) %>%
   as.matrix()
 
-# 2. Initialize Model
-Tvp_Kilian_Stock <- new(bvartvp)
+# Initialize Model
+Tvp_Kilian_Stock <- new(BMR::bvartvp)
 Tvp_Kilian_Stock$build(data = Kilian_Stock, const = TRUE, lags = 2)
 
-# 3. Define Hyperparameters
+# Define Hyperparameters
 
 #ISSUE
 # Prior ought be integrated as follow for a minnesota prior.
@@ -55,11 +54,11 @@ XiSigma <- 1     # Scaling for the variance of the volatility drift (S matrix)
 gammaS  <- 4     # Degrees of freedom for the S matrix prior
 
 
-# 4. Apply Priors
+# Apply Priors
 Tvp_Kilian_Stock$prior(tau,XiBeta,XiQ,gammaQ,XiSigma,gammaS) #See Above
 
-# 5. Estimate via Gibbs Sampling
-Tvp_Kilian_Stock$gibbs(10000, #Total Iteration
+# Estimate via Gibbs Sampling
+Tvp_Kilian_Stock$gibbs(10000, #Total Iteration (Very low)
                         5000) #Burn-In
 
 saveRDS(Tvp_Kilian_Stock, file = "Processed_Data/Tvp_Kilian_Model.rds") #Allows to save the RDS
@@ -214,7 +213,7 @@ extract_irf <- function(irf, response, shock, negative = FALSE) {
 
   if (negative) {
     return(list(
-      lower  = -hi,
+      lower  = -hi, # Essentially switch places
       median = -md,
       upper  = -lo
     ))
@@ -264,9 +263,6 @@ abline(h=0, col="gray")
 
 dev.off()
 
-
-
-
 ###################################################Covid-19 Outbreak################################### 
 ##                                                                                                   ##
 
@@ -288,7 +284,6 @@ irf_obj_Covid <- IRF.Rcpp_bvartvp(
   shocks_row_order = TRUE, 
   save=FALSE)
   dev.off()
-
 
 irf_activity <- extract_irf(irf_obj_Covid, response = 2, shock = 1, negative = TRUE)
 irf_oilp     <- extract_irf(irf_obj_Covid, response = 3, shock = 1, negative = TRUE)
@@ -455,3 +450,6 @@ dev.off()
 #Return the following: Error in UseMethod("FEVD") :
 #no applicable method for 'FEVD' applied to an object of class "c('Rcpp_bvartvp', 'C++Object', 'envRefClass', 
 #'.environment', 'refClass', 'environment', 'refObject')"
+#
+
+#mode_check.Rcpp_bvartvp(Tvp_Kilian_Stock) # No mode check for TVP-BVAR

@@ -17,20 +17,19 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 dir.create("Processed_Data", showWarnings = FALSE)
 
 
-# 1. Load combined raw dataset
+# Load combined raw dataset
 df_raw <- read_csv("Raw_Data/Combined_Data_1986_2024.csv")
 
-# 2. Transform variables
+# Transform variables
 df_processed <- df_raw %>%
   arrange(date) %>%
   mutate(
     oil_production_growth   = 100 * (log(oil_prod_global) - lag(log(oil_prod_global))),
-    real_activity  = global_real_economic_activity, # Already implied to be stationary, no need to detrend
+    real_activity  = global_real_economic_activity, # Taken as level
     real_oil_price   = log(oil_price / cpi), #Logged and Deflated as in Killian (2009)
     real_sp500_return = 100 * ( (log(SP500) - lag(log(SP500))) - (log(cpi) - lag(log(cpi))) ),
-    fedfunds   = fed_funds # Not stationary 
+    fedfunds   = fed_funds 
 
-    # Growth rates / returns (percent)
   ) %>%
   dplyr::select(
     date,
@@ -43,26 +42,22 @@ df_processed <- df_raw %>%
   ) %>%
   na.omit()
 
-# 3. Save processed dataset
+#Save processed dataset
 write_csv(
   df_processed,
   "Processed_Data/Processed_1986_2024.csv"
 )
 
 
-
-
-# 1. Load processed dataset
-macro_data <- read_csv("Processed_Data/Processed_1986_2024.csv")
-
-# 2. Convert to xts
+##########################################################################################################
+#                                   Plot of Variable used in the model (Graph 1)                        ##
 
 # Read processed macro data
 macro_data <- read_csv("Processed_Data/Processed_1986_2024.csv")
 
 data_xts <- xts(
   macro_data %>% 
-     dplyr::select(
+     dplyr::select(           #Sometimes R does not seem to understand a function unless called as such.
       oil_production_growth,
       real_activity,
       real_oil_price,
@@ -72,7 +67,7 @@ data_xts <- xts(
   order.by = macro_data$date
 )
 
-# 3. Save multiple plots in one PNG file
+# Save plots
 png("Processed_Data/Graph_01_Plotted_Processed_Variables.png", width = 1200, height = 1000)
 par(mfrow = c(2, 2))  # Rows and Colomns
 

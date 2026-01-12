@@ -153,24 +153,25 @@ summary(ur.kpss(data_xts["2005-06/2024-12"]$real_oil_price,type = "tau"))
 #Value of KPSS test-statistic with trend is: (0.2658) > Critical Value -->  Not Stationary
 
 ##########################################################################################################
-###                                 2. ACF tests (1986-2020)                                           ### 
+###                                 5. ACF tests (1986-2020)                                           ### 
 
 dir.create("Processed_Data/ACF", showWarnings = FALSE)
 
+#Plot ACF for all variables of interest within the data set.
 png("Processed_Data/ACF/Graph_2_Oil_Production_Growth.png", width = 800, height = 600)
 acf(data_xts$oil_production_growth, main = "ACF Plot for Oil Production Growth")
 legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
        fill = c("blue", "grey"), border = NA, bty = "n")
 dev.off()
 
-
+# Most important
 png("Processed_Data/ACF/Graph_2_Real_Activity.png", width = 800, height = 600)
 acf(data_xts$real_activity, main = "ACF Plot for Real Activity")
 legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
        fill = c("blue", "grey"), border = NA, bty = "n")
 dev.off()
 
-
+#M Most important
 png("Processed_Data/ACF/Graph_2_Real_Oil_Price.png", width = 800, height = 600)
 acf(data_xts$real_oil_price, main = "ACF Plot for Real Oil Price")
 legend("topright", legend = c("Significant Lag", "Non-significant Lag"),
