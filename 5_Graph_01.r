@@ -3,7 +3,6 @@
 # Load or install required packages
 required_packages <- c("readr", "dplyr", "zoo","xts")
 
-
 installed <- required_packages %in% installed.packages()
 if (any(!installed)) {
   install.packages(required_packages[!installed])
@@ -15,11 +14,6 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 macro_data <- read_csv("Processed_Data/Processed_1986_2024.csv")%>%
   mutate(date = as.Date(date))
 
-
-# Ensure correct working directory
-if(!file.exists("Processed_Data/Processed_1986_2024.csv")){
-  stop("Processed CSV not found. Check working directory!")
-}
 
 data_xts <- xts(
   macro_data %>% 
@@ -33,11 +27,11 @@ data_xts <- xts(
   order.by = macro_data$date
 )
 
-print(dim(data_xts))
 
 png("Processed_Data/Graph_01_Plotted_Processed_Variables.png", width = 1200, height = 1000)
-par(mfrow = c(2, 2))
+on.exit(dev.off()) 
 
+par(mfrow = c(2, 2))
 plot.zoo(data_xts$real_oil_price,
          main = "Real Oil Price (Log levels)",
          ylab = "Log Price",
