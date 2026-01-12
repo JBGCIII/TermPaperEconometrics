@@ -28,6 +28,9 @@ data_xts <- xts(
   order.by = macro_data$date
 )
 
+dim(data_xts)
+
+
 # Save plots
 png("Processed_Data/Graph_01_Plotted_Processed_Variables.png", width = 1200, height = 1000)
 par(mfrow = c(2, 2))  # Rows and Colomns
