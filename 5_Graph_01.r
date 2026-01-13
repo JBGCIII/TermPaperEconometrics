@@ -56,4 +56,4 @@ plot(plot_df$date, plot_df$real_sp500_return, type="l",
      ylab="Percent", col="purple", lwd=1)
 
 # Close device
-while(dev.cur() > 1) dev.off()
+dev.off()
