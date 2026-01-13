@@ -14,7 +14,6 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 macro_data <- read_csv("Processed_Data/Processed_1986_2024.csv")%>%
   mutate(date = as.Date(date))
 
-
 data_xts <- xts(
   macro_data %>% 
      dplyr::select(           #Sometimes R does not seem to understand a function unless called as such.
