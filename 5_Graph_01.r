@@ -28,33 +28,32 @@ data_xts <- xts(
 )
 
 
+# Convert xts to data frame for plotting
+plot_df <- data.frame(
+  date = index(data_xts),
+  coredata(data_xts)
+)
+
+# Open PNG device
 png("Processed_Data/Graph_01_Plotted_Processed_Variables.png", width = 1200, height = 1000)
-on.exit(dev.off()) 
-
 par(mfrow = c(2, 2))
-plot.zoo(data_xts$real_oil_price,
-         main = "Real Oil Price (Log levels)",
-         ylab = "Log Price",
-         col = "darkgreen",
-         lwd = 1)
 
-plot.zoo(data_xts$oil_production_growth,
-         main = "Global Oil Production Growth (%)",
-         ylab = "Percent Change",
-         col = "brown",
-         lwd = 1)
+# Plot using numeric values with dates on X-axis
+plot(plot_df$date, plot_df$real_oil_price, type="l",
+     main="Real Oil Price (Log levels)",
+     ylab="Log Price", col="darkgreen", lwd=1)
 
-plot.zoo(data_xts$real_activity,
-         main = "Global Real Economic Activity",
-         ylab = "Index",
-         col = "blue",
-         lwd = 1)
+plot(plot_df$date, plot_df$oil_production_growth, type="l",
+     main="Global Oil Production Growth (%)",
+     ylab="Percent Change", col="brown", lwd=1)
 
-plot.zoo(data_xts$real_sp500_return,
-         main = "Real S&P 500 Monthly Returns (%)",
-         ylab = "Real Return (%)",
-         col = "purple",
-         lwd = 1)
+plot(plot_df$date, plot_df$real_activity, type="l",
+     main="Global Real Economic Activity",
+     ylab="Index", col="blue", lwd=1)
 
-# Close PNG device
-dev.off()
+plot(plot_df$date, plot_df$real_sp500_return, type="l",
+     main="Real S&P 500 Monthly Returns (%)",
+     ylab="Percent", col="purple", lwd=1)
+
+# Close device
+while(dev.cur() > 1) dev.off()
